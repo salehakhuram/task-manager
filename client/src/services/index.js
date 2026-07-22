@@ -34,6 +34,9 @@ export const notificationService = {
 };
 
 export const dashboardService = {
-  get: () => api.get('/dashboard'),
+  get: () =>
+    api.get('/dashboard', {
+      params: { tzOffset: new Date().getTimezoneOffset() },
+    }),
   calendar: (params) => api.get('/dashboard/calendar', { params }),
 };

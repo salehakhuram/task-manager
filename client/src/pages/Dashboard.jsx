@@ -131,8 +131,17 @@ export default function Dashboard() {
                 className="flex items-center justify-between gap-3 rounded-xl bg-ink-50 px-3 py-2.5 dark:bg-ink-800/50"
               >
                 <div className="min-w-0">
-                  <p className="truncate font-medium text-ink-900 dark:text-ink-50">{task.title}</p>
-                  <p className="text-xs text-ink-400">{format(new Date(task.dueDate), 'h:mm a')}</p>
+                  <p
+                    className={`truncate font-medium text-ink-900 dark:text-ink-50 ${
+                      task.status === 'completed' ? 'line-through opacity-60' : ''
+                    }`}
+                  >
+                    {task.title}
+                  </p>
+                  <p className="text-xs text-ink-400">
+                    {format(new Date(task.dueDate), 'h:mm a')}
+                    {task.status === 'completed' ? ' · done' : ''}
+                  </p>
                 </div>
                 <Badge className={getPriorityStyle(task.priority)}>{task.priority}</Badge>
               </div>
@@ -173,16 +182,32 @@ export default function Dashboard() {
               All <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
+          <p className="mb-3 text-xs text-ink-400">
+            Later today and the next 7 days ({counts.upcomingTasks ?? (data?.upcomingTasks || []).length} pending)
+          </p>
           <div className="space-y-2">
             {(data?.upcomingTasks || []).length === 0 && (
-              <p className="py-6 text-center text-sm text-ink-400">Nothing upcoming this week</p>
+              <p className="py-6 text-center text-sm text-ink-400">No upcoming tasks</p>
             )}
-            {(data?.upcomingTasks || []).map((task) => (
-              <div key={task._id} className="flex justify-between gap-2 rounded-xl border border-ink-100 px-3 py-2 dark:border-ink-800">
-                <p className="truncate text-sm font-medium">{task.title}</p>
-                <p className="shrink-0 text-xs text-ink-400">{format(new Date(task.dueDate), 'MMM d')}</p>
-              </div>
-            ))}
+            {(data?.upcomingTasks || []).map((task) => {
+              const due = new Date(task.dueDate);
+              const isToday =
+                format(due, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+              return (
+                <div
+                  key={task._id}
+                  className="flex items-center justify-between gap-2 rounded-xl border border-ink-100 px-3 py-2.5 dark:border-ink-800"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{task.title}</p>
+                    <p className="text-[11px] text-ink-400">
+                      {isToday ? 'Today' : format(due, 'EEE, MMM d')} · {format(due, 'h:mm a')}
+                    </p>
+                  </div>
+                  <Badge className={getPriorityStyle(task.priority)}>{task.priority}</Badge>
+                </div>
+              );
+            })}
           </div>
         </section>
 
