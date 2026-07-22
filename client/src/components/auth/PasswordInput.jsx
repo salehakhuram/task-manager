@@ -24,7 +24,10 @@ export default function PasswordInput({
         <input
           id={id}
           type={show ? 'text' : 'password'}
-          className={cn('input !pr-11', error && 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20')}
+          className={cn(
+            'input password-input !pr-11',
+            error && 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20'
+          )}
           value={value}
           onChange={onChange}
           onBlur={onBlur}
