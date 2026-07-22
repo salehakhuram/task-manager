@@ -21,6 +21,13 @@ const appName = () => process.env.APP_NAME || 'TaskFlow';
 const appUrl = () =>
   (process.env.CLIENT_URL || 'http://localhost:5173').split(',')[0].trim();
 
+/** Prefer raw address for SMTP "from"; strip display name if env includes one. */
+const resolveFromAddress = () => {
+  const raw = process.env.SMTP_FROM || process.env.SMTP_USER || '';
+  const match = String(raw).match(/<([^>]+)>/);
+  return (match ? match[1] : raw).trim() || process.env.SMTP_USER;
+};
+
 /**
  * Send welcome email when a user registers.
  * Does not throw — registration should still succeed if mail fails.
@@ -32,12 +39,12 @@ const sendWelcomeEmail = async ({ name, email }) => {
     return { sent: false, reason: 'not_configured' };
   }
 
-  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+  const fromAddress = resolveFromAddress();
   const site = appUrl();
 
   try {
     await transporter.sendMail({
-      from: `"${appName()}" <${from}>`,
+      from: `"${appName()}" <${fromAddress}>`,
       to: email,
       subject: `Welcome to ${appName()}!`,
       text: [
@@ -48,7 +55,8 @@ const sendWelcomeEmail = async ({ name, email }) => {
         '',
         `Open the app: ${site}`,
         '',
-        'You can now create tasks, meetings, and get reminders.',
+        'Your tasks and meetings are saved securely under this email account.',
+        'You can create tasks, schedule meetings, and receive reminders.',
         '',
         `— The ${appName()} Team`,
       ].join('\n'),
@@ -58,6 +66,9 @@ const sendWelcomeEmail = async ({ name, email }) => {
           <p style="font-size:16px;line-height:1.5;">Hi <strong>${name}</strong>,</p>
           <p style="font-size:16px;line-height:1.5;">
             Your account was created successfully with <strong>${email}</strong>.
+          </p>
+          <p style="font-size:14px;line-height:1.5;color:#3d4a57;">
+            All your tasks, meetings, and reminders stay private and linked only to this email.
           </p>
           <p style="margin:24px 0;">
             <a href="${site}" style="background:#28735c;color:#fff;text-decoration:none;padding:12px 20px;border-radius:10px;display:inline-block;font-weight:600;">

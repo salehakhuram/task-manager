@@ -40,11 +40,18 @@ const corsOrigin = (origin, callback) => {
 };
 
 const bootstrap = async () => {
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 16) {
+    throw new Error('JWT_SECRET must be set (min 16 characters) before starting the server');
+  }
+
   await connectDB();
   await backfillReminderAt();
 
   const app = express();
   const server = http.createServer(app);
+
+  // Basic hardening headers
+  app.disable('x-powered-by');
 
   // Required behind Render / reverse proxies (HTTPS + Socket.IO)
   app.set('trust proxy', 1);

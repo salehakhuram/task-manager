@@ -36,7 +36,7 @@ const showReminderToast = (payload) => {
         </p>
         {overdue && (
           <p className="mt-1 text-[11px] font-medium text-amber-700 dark:text-amber-300">
-            Ye waqt guzar gaya hai
+            This time has passed
           </p>
         )}
       </div>
@@ -57,7 +57,7 @@ const handleReminderEvent = (payload, { onStored }) => {
       : `Time passed: ${payload.title}`
     : payload.title;
   const desktopBody = overdue
-    ? `Ye waqt guzar gaya hai. ${payload.description || payload.message || ''}`
+    ? `This time has passed. ${payload.description || payload.message || ''}`
     : payload.description || payload.message;
 
   showDesktopNotification({

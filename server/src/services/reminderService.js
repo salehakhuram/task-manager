@@ -41,10 +41,10 @@ const deliverReminder = async ({
 
   const displayTitle = overdue ? `Time passed: ${title}` : title;
   const displayMessage = overdue
-    ? `Ye waqt guzar gaya hai — ${message}`
+    ? `This time has passed — ${message}`
     : message;
   const displayDescription = overdue
-    ? `Ye waqt guzar gaya hai. ${description}`
+    ? `This time has passed. ${description}`
     : description;
 
   const notification = await Notification.create({
@@ -122,7 +122,7 @@ const processClaimedTask = async (task) => {
     userId: task.user,
     title: task.title,
     message: overdue
-      ? `Task ka reminder time guzar gaya hai (${formatWhen(task.reminderAt)})`
+      ? `Task reminder time has passed (${formatWhen(task.reminderAt)})`
       : `Task reminder: ${task.title}`,
     description: desc,
     type: 'task',
@@ -145,7 +145,7 @@ const processClaimedMeeting = async (meeting) => {
     userId: meeting.user,
     title: meeting.title,
     message: overdue
-      ? `Meeting ka reminder time guzar gaya hai (${formatWhen(meeting.reminderAt)})`
+      ? `Meeting reminder time has passed (${formatWhen(meeting.reminderAt)})`
       : `Meeting reminder: ${meeting.title}`,
     description: desc,
     type: 'meeting',
@@ -207,15 +207,15 @@ const flushMissedRemindersForUser = async (userId) => {
   let resent = 0;
   for (const notification of undelivered) {
     const alreadyMarked =
-      /guzar|passed|Time passed/i.test(notification.title || '') ||
-      /guzar|passed/i.test(notification.message || '');
+      /time has passed|Time passed/i.test(notification.title || '') ||
+      /time has passed|passed/i.test(notification.message || '');
 
     const title = alreadyMarked
       ? notification.title
       : `Time passed: ${notification.title}`;
     const description = alreadyMarked
       ? notification.description || notification.message
-      : `Ye waqt guzar gaya hai. ${notification.description || notification.message}`;
+      : `This time has passed. ${notification.description || notification.message}`;
 
     const payload = {
       id: notification._id,
@@ -223,7 +223,7 @@ const flushMissedRemindersForUser = async (userId) => {
       title,
       message: alreadyMarked
         ? notification.message
-        : `Ye waqt guzar gaya hai — ${notification.message}`,
+        : `This time has passed — ${notification.message}`,
       description,
       type: notification.type,
       icon: notification.icon || REMINDER_ICON,
