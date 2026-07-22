@@ -24,9 +24,9 @@ const getLocalDayBounds = (tzOffset = 0, base = new Date()) => {
 const getDashboard = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const tzOffset = Number(req.query.tzOffset);
-  const { todayStart, todayEnd, upcomingEnd, now } = getLocalDayBounds(
-    Number.isFinite(tzOffset) ? tzOffset : 0
-  );
+  const safeOffset =
+    Number.isFinite(tzOffset) && tzOffset >= -840 && tzOffset <= 840 ? tzOffset : 0;
+  const { todayStart, todayEnd, upcomingEnd, now } = getLocalDayBounds(safeOffset);
 
   const [
     todayTasks,
@@ -94,7 +94,7 @@ const getDashboard = asyncHandler(async (req, res) => {
       meta: {
         todayStart,
         todayEnd,
-        tzOffset: Number.isFinite(tzOffset) ? tzOffset : 0,
+        tzOffset: safeOffset,
       },
     },
   });

@@ -40,6 +40,9 @@ const saveSubscription = async (userId, subscription) => {
   if (existingIndex >= 0) {
     user.pushSubscriptions[existingIndex] = entry;
   } else {
+    if (user.pushSubscriptions.length >= 10) {
+      user.pushSubscriptions.shift();
+    }
     user.pushSubscriptions.push(entry);
   }
 

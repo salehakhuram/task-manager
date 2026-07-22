@@ -6,7 +6,9 @@ import {
   cn,
   getErrorMessage,
   getPasswordStrength,
+  validateConfirmPassword,
   validateEmail,
+  validateName,
   validatePasswordRegister,
 } from '../utils/helpers';
 import { Spinner } from '../components/ui/EmptyState';
@@ -16,37 +18,64 @@ import PasswordInput from '../components/auth/PasswordInput';
 export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
-  const [errors, setErrors] = useState({ name: '', email: '', password: '' });
-  const [touched, setTouched] = useState({ name: false, email: false, password: false });
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [errors, setErrors] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [touched, setTouched] = useState({
+    name: false,
+    email: false,
+    password: false,
+    confirmPassword: false,
+  });
   const [loading, setLoading] = useState(false);
 
   const strength = getPasswordStrength(form.password);
-
-  const validateName = (name) => {
-    const value = (name || '').trim();
-    if (!value) return 'Name is required';
-    if (value.length < 2) return 'Name must be at least 2 characters';
-    if (value.length > 50) return 'Name cannot exceed 50 characters';
-    return '';
-  };
 
   const validators = {
     name: validateName,
     email: validateEmail,
     password: validatePasswordRegister,
+    confirmPassword: (value) => validateConfirmPassword(form.password, value),
   };
 
   const setField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    if (touched[field]) {
-      setErrors((prev) => ({ ...prev, [field]: validators[field](value) }));
-    }
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (touched[field] || field === 'password') {
+        if (field === 'confirmPassword') {
+          next.confirmPassword = validateConfirmPassword(form.password, value);
+        } else if (field === 'password') {
+          next.password = validatePasswordRegister(value);
+          if (touched.confirmPassword) {
+            next.confirmPassword = validateConfirmPassword(value, form.confirmPassword);
+          }
+        } else {
+          next[field] = validators[field](value);
+        }
+      }
+      return next;
+    });
   };
 
   const markTouched = (field) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
-    setErrors((prev) => ({ ...prev, [field]: validators[field](form[field]) }));
+    setErrors((prev) => ({
+      ...prev,
+      [field]:
+        field === 'confirmPassword'
+          ? validateConfirmPassword(form.password, form.confirmPassword)
+          : validators[field](form[field]),
+    }));
   };
 
   const validateForm = () => {
@@ -54,10 +83,16 @@ export default function Register() {
       name: validateName(form.name),
       email: validateEmail(form.email),
       password: validatePasswordRegister(form.password),
+      confirmPassword: validateConfirmPassword(form.password, form.confirmPassword),
     };
     setErrors(next);
-    setTouched({ name: true, email: true, password: true });
-    return !next.name && !next.email && !next.password;
+    setTouched({
+      name: true,
+      email: true,
+      password: true,
+      confirmPassword: true,
+    });
+    return !next.name && !next.email && !next.password && !next.confirmPassword;
   };
 
   const onSubmit = async (e) => {
@@ -104,7 +139,9 @@ export default function Register() {
               id="name"
               className={cn(
                 'input',
-                touched.name && errors.name && 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20'
+                touched.name &&
+                  errors.name &&
+                  'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20'
               )}
               value={form.name}
               onChange={(e) => setField('name', e.target.value)}
@@ -112,10 +149,14 @@ export default function Register() {
               placeholder="Your name"
               disabled={loading}
               autoComplete="name"
+              maxLength={50}
               aria-invalid={touched.name && !!errors.name}
+              aria-describedby={touched.name && errors.name ? 'name-error' : undefined}
             />
             {touched.name && errors.name && (
-              <p className="mt-1.5 text-xs text-rose-600 dark:text-rose-400">{errors.name}</p>
+              <p id="name-error" className="mt-1.5 text-xs text-rose-600 dark:text-rose-400">
+                {errors.name}
+              </p>
             )}
           </div>
 
@@ -160,6 +201,18 @@ export default function Register() {
               </div>
             )}
           </div>
+
+          <PasswordInput
+            id="confirmPassword"
+            label="Confirm password"
+            value={form.confirmPassword}
+            onChange={(e) => setField('confirmPassword', e.target.value)}
+            onBlur={() => markTouched('confirmPassword')}
+            error={touched.confirmPassword ? errors.confirmPassword : ''}
+            disabled={loading}
+            placeholder="Re-enter password"
+            autoComplete="new-password"
+          />
 
           <button type="submit" className="btn-primary w-full" disabled={loading}>
             {loading ? <Spinner className="h-4 w-4" /> : 'Create account'}

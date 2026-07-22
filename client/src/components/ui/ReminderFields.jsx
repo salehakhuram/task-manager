@@ -92,7 +92,7 @@ export const computeReminderAtLocal = (eventDateTimeLocal, minutesBefore) => {
   );
 };
 
-export const validateReminderAt = (reminderAtLocal, eventAtLocal) => {
+export const validateReminderAt = (reminderAtLocal, eventAtLocal, { requireFuture = true } = {}) => {
   if (!reminderAtLocal) return 'Reminder date & time is required';
   const reminder = new Date(reminderAtLocal);
   if (Number.isNaN(reminder.getTime())) return 'Enter a valid reminder date & time';
@@ -101,6 +101,9 @@ export const validateReminderAt = (reminderAtLocal, eventAtLocal) => {
     if (!Number.isNaN(event.getTime()) && reminder.getTime() > event.getTime()) {
       return 'Reminder must be at or before the event time';
     }
+  }
+  if (requireFuture && reminder.getTime() <= Date.now()) {
+    return 'Reminder must be in the future';
   }
   return '';
 };

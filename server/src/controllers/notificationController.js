@@ -1,14 +1,15 @@
 const Notification = require('../models/Notification');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { parsePagination } = require('../utils/queryHelpers');
 
 const getNotifications = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 30, unreadOnly } = req.query;
+  const { unreadOnly } = req.query;
+  const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 30 });
   const filter = { user: req.user._id };
   if (unreadOnly === 'true') filter.isRead = false;
 
-  const skip = (Number(page) - 1) * Number(limit);
   const [notifications, total, unreadCount] = await Promise.all([
-    Notification.find(filter).sort('-createdAt').skip(skip).limit(Number(limit)),
+    Notification.find(filter).sort('-createdAt').skip(skip).limit(limit),
     Notification.countDocuments(filter),
     Notification.countDocuments({ user: req.user._id, isRead: false }),
   ]);
@@ -19,8 +20,8 @@ const getNotifications = asyncHandler(async (req, res) => {
     unreadCount,
     pagination: {
       total,
-      page: Number(page),
-      pages: Math.ceil(total / Number(limit)),
+      page,
+      pages: Math.ceil(total / limit) || 1,
     },
   });
 });

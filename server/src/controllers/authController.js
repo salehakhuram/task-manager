@@ -9,6 +9,9 @@ const validatePassword = (password) => {
   if (!password || password.length < 8) {
     return 'Password must be at least 8 characters';
   }
+  if (password.length > 128) {
+    return 'Password cannot exceed 128 characters';
+  }
   if (/\s/.test(password)) {
     return 'Password cannot contain spaces';
   }

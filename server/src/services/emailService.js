@@ -21,6 +21,14 @@ const appName = () => process.env.APP_NAME || 'TaskFlow';
 const appUrl = () =>
   (process.env.CLIENT_URL || 'http://localhost:5173').split(',')[0].trim();
 
+const escapeHtml = (value = '') =>
+  String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
 /** Prefer raw address for SMTP "from"; strip display name if env includes one. */
 const resolveFromAddress = () => {
   const raw = process.env.SMTP_FROM || process.env.SMTP_USER || '';
@@ -41,6 +49,9 @@ const sendWelcomeEmail = async ({ name, email }) => {
 
   const fromAddress = resolveFromAddress();
   const site = appUrl();
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
+  const safeApp = escapeHtml(appName());
 
   try {
     await transporter.sendMail({
@@ -62,17 +73,17 @@ const sendWelcomeEmail = async ({ name, email }) => {
       ].join('\n'),
       html: `
         <div style="font-family:Segoe UI,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#1f242a;">
-          <h1 style="color:#28735c;font-size:24px;margin:0 0 12px;">Welcome to ${appName()}</h1>
-          <p style="font-size:16px;line-height:1.5;">Hi <strong>${name}</strong>,</p>
+          <h1 style="color:#28735c;font-size:24px;margin:0 0 12px;">Welcome to ${safeApp}</h1>
+          <p style="font-size:16px;line-height:1.5;">Hi <strong>${safeName}</strong>,</p>
           <p style="font-size:16px;line-height:1.5;">
-            Your account was created successfully with <strong>${email}</strong>.
+            Your account was created successfully with <strong>${safeEmail}</strong>.
           </p>
           <p style="font-size:14px;line-height:1.5;color:#3d4a57;">
             All your tasks, meetings, and reminders stay private and linked only to this email.
           </p>
           <p style="margin:24px 0;">
             <a href="${site}" style="background:#28735c;color:#fff;text-decoration:none;padding:12px 20px;border-radius:10px;display:inline-block;font-weight:600;">
-              Open ${appName()}
+              Open ${safeApp}
             </a>
           </p>
           <p style="font-size:14px;color:#626f7d;">You can create tasks, schedule meetings, and receive reminders.</p>

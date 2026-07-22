@@ -30,6 +30,7 @@ const taskSchema = new mongoose.Schema(
     category: {
       type: String,
       trim: true,
+      maxlength: [50, 'Category cannot exceed 50 characters'],
       default: 'General',
     },
     status: {

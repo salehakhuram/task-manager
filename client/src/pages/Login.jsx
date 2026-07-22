@@ -63,7 +63,8 @@ export default function Login() {
     try {
       await login(form.email.trim(), form.password);
       toast.success('Welcome back');
-      navigate('/');
+      const redirectTo = location.state?.from?.pathname || '/';
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       toast.error(getErrorMessage(err, 'Login failed'));
     } finally {

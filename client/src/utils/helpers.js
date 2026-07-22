@@ -59,10 +59,38 @@ export const validatePasswordLogin = (password) => {
 export const validatePasswordRegister = (password) => {
   if (!password) return 'Password is required';
   if (password.length < 8) return 'Password must be at least 8 characters';
+  if (password.length > 128) return 'Password cannot exceed 128 characters';
   if (!/[a-z]/.test(password)) return 'Include at least one lowercase letter';
   if (!/[A-Z]/.test(password)) return 'Include at least one uppercase letter';
   if (!/[0-9]/.test(password)) return 'Include at least one number';
   if (/\s/.test(password)) return 'Password cannot contain spaces';
+  return '';
+};
+
+export const validateName = (name) => {
+  const value = (name || '').trim();
+  if (!value) return 'Name is required';
+  if (value.length < 2) return 'Name must be at least 2 characters';
+  if (value.length > 50) return 'Name cannot exceed 50 characters';
+  return '';
+};
+
+export const validateConfirmPassword = (password, confirm) => {
+  if (!confirm) return 'Please confirm your password';
+  if (password !== confirm) return 'Passwords do not match';
+  return '';
+};
+
+export const validateTitle = (title, label = 'Title') => {
+  const value = (title || '').trim();
+  if (!value) return `${label} is required`;
+  if (value.length > 200) return `${label} cannot exceed 200 characters`;
+  return '';
+};
+
+export const validateOptionalText = (value, max, label) => {
+  const text = value || '';
+  if (text.length > max) return `${label} cannot exceed ${max} characters`;
   return '';
 };
 

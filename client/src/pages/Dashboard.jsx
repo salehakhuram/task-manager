@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
+import toast from 'react-hot-toast';
 import {
   CheckSquare,
   CircleDashed,
@@ -12,7 +13,7 @@ import {
 import { dashboardService } from '../services';
 import { useAuth } from '../context/AuthContext';
 import { Spinner, Badge } from '../components/ui/EmptyState';
-import { getPriorityStyle } from '../utils/helpers';
+import { getErrorMessage, getPriorityStyle } from '../utils/helpers';
 
 function StatCard({ icon: Icon, label, value, accent }) {
   return (
@@ -41,8 +42,8 @@ export default function Dashboard() {
       try {
         const res = await dashboardService.get();
         if (mounted) setData(res.data.data);
-      } catch {
-        /* ignore */
+      } catch (err) {
+        if (mounted) toast.error(getErrorMessage(err, 'Failed to load dashboard'));
       } finally {
         if (mounted) setLoading(false);
       }

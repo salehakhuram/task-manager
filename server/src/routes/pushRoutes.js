@@ -27,6 +27,10 @@ router.post(
   '/subscribe',
   protect,
   asyncHandler(async (req, res) => {
+    if (!req.body?.endpoint || !req.body?.keys?.p256dh || !req.body?.keys?.auth) {
+      res.status(400);
+      throw new Error('Invalid push subscription');
+    }
     await saveSubscription(req.user._id, req.body);
     res.json({ success: true, message: 'Desktop notifications enabled' });
   })

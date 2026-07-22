@@ -4,7 +4,9 @@ import {
   cn,
   getMinDateTimeLocal,
   toDateTimeLocalValue,
+  validateOptionalText,
   validateTaskDueDate,
+  validateTitle,
 } from '../../utils/helpers';
 import ReminderFields, {
   computeReminderAtLocal,
@@ -24,6 +26,9 @@ const initial = {
 
 export default function TaskForm({ initialData, defaultDate, onSubmit, onCancel, loading }) {
   const [form, setForm] = useState(initial);
+  const [titleError, setTitleError] = useState('');
+  const [descriptionError, setDescriptionError] = useState('');
+  const [categoryError, setCategoryError] = useState('');
   const [dueError, setDueError] = useState('');
   const [reminderError, setReminderError] = useState('');
 
@@ -49,7 +54,6 @@ export default function TaskForm({ initialData, defaultDate, onSubmit, onCancel,
       const d = new Date(defaultDate);
       if (!Number.isNaN(d.getTime())) {
         const now = new Date();
-        // If calendar day is today/past morning default, bump to at least +1 hour from now
         if (d.getTime() <= now.getTime()) {
           d.setTime(now.getTime() + 60 * 60 * 1000);
         } else {
@@ -66,7 +70,6 @@ export default function TaskForm({ initialData, defaultDate, onSubmit, onCancel,
         }));
       }
     } else {
-      // Default new task: 1 hour from now
       const d = new Date(Date.now() + 60 * 60 * 1000);
       const due = toDateTimeLocalValue(d);
       setForm((f) => ({
@@ -88,19 +91,28 @@ export default function TaskForm({ initialData, defaultDate, onSubmit, onCancel,
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Editing completed tasks may keep past due dates; only enforce future on create / pending
     const mustBeFuture = !initialData || form.status === 'pending';
+    const nextTitle = validateTitle(form.title, 'Task title');
+    const nextDesc = validateOptionalText(form.description, 2000, 'Description');
+    const nextCat = validateOptionalText(form.category, 50, 'Category');
     const dueErr = mustBeFuture ? validateTaskDueDate(form.dueDate) : '';
+    const remErr = validateReminderAt(form.reminderAt, form.dueDate, {
+      requireFuture: mustBeFuture,
+    });
+
+    setTitleError(nextTitle);
+    setDescriptionError(nextDesc);
+    setCategoryError(nextCat);
     setDueError(dueErr);
-    const remErr = validateReminderAt(form.reminderAt, form.dueDate);
     setReminderError(remErr);
-    if (dueErr || remErr) return;
+
+    if (nextTitle || nextDesc || nextCat || dueErr || remErr) return;
 
     onSubmit({
-      title: form.title,
-      description: form.description,
+      title: form.title.trim(),
+      description: form.description.trim(),
       priority: form.priority,
-      category: form.category,
+      category: (form.category || 'General').trim(),
       status: form.status,
       dueDate: new Date(form.dueDate).toISOString(),
       reminder: Number(form.reminder),
@@ -108,29 +120,51 @@ export default function TaskForm({ initialData, defaultDate, onSubmit, onCancel,
     });
   };
 
+  const hasErrors =
+    !!titleError || !!descriptionError || !!categoryError || !!dueError || !!reminderError;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
       <div>
         <label className="label" htmlFor="task-title">Title</label>
         <input
           id="task-title"
-          required
-          className="input"
+          maxLength={200}
+          className={cn(
+            'input',
+            titleError && 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20'
+          )}
           value={form.title}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
+          onChange={(e) => {
+            setForm({ ...form, title: e.target.value });
+            setTitleError(validateTitle(e.target.value, 'Task title'));
+          }}
           placeholder="What needs to be done?"
         />
+        {titleError && (
+          <p className="mt-1.5 text-xs text-rose-600 dark:text-rose-400">{titleError}</p>
+        )}
       </div>
       <div>
         <label className="label" htmlFor="task-desc">Description</label>
         <textarea
           id="task-desc"
           rows={3}
-          className="input resize-none"
+          maxLength={2000}
+          className={cn(
+            'input resize-none',
+            descriptionError && 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20'
+          )}
           value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
+          onChange={(e) => {
+            setForm({ ...form, description: e.target.value });
+            setDescriptionError(validateOptionalText(e.target.value, 2000, 'Description'));
+          }}
           placeholder="Optional details"
         />
+        {descriptionError && (
+          <p className="mt-1.5 text-xs text-rose-600 dark:text-rose-400">{descriptionError}</p>
+        )}
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
@@ -150,11 +184,21 @@ export default function TaskForm({ initialData, defaultDate, onSubmit, onCancel,
           <label className="label" htmlFor="task-category">Category</label>
           <input
             id="task-category"
-            className="input"
+            maxLength={50}
+            className={cn(
+              'input',
+              categoryError && 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20'
+            )}
             value={form.category}
-            onChange={(e) => setForm({ ...form, category: e.target.value })}
+            onChange={(e) => {
+              setForm({ ...form, category: e.target.value });
+              setCategoryError(validateOptionalText(e.target.value, 50, 'Category'));
+            }}
             placeholder="General"
           />
+          {categoryError && (
+            <p className="mt-1.5 text-xs text-rose-600 dark:text-rose-400">{categoryError}</p>
+          )}
         </div>
       </div>
       <div>
@@ -162,7 +206,6 @@ export default function TaskForm({ initialData, defaultDate, onSubmit, onCancel,
         <input
           id="task-due"
           type="datetime-local"
-          required
           min={minDateTime}
           className={cn(
             'input',
@@ -184,7 +227,11 @@ export default function TaskForm({ initialData, defaultDate, onSubmit, onCancel,
         onReminderChange={(minutes) => setForm((f) => ({ ...f, reminder: minutes }))}
         onReminderAtChange={(value) => {
           setForm((f) => ({ ...f, reminderAt: value }));
-          setReminderError('');
+          setReminderError(
+            validateReminderAt(value, form.dueDate, {
+              requireFuture: !initialData || form.status === 'pending',
+            })
+          );
         }}
         error={reminderError}
       />
@@ -205,7 +252,7 @@ export default function TaskForm({ initialData, defaultDate, onSubmit, onCancel,
       )}
       <div className="flex justify-end gap-2 pt-2">
         <button type="button" className="btn-secondary" onClick={onCancel}>Cancel</button>
-        <button type="submit" className="btn-primary" disabled={loading || !!dueError || !!reminderError}>
+        <button type="submit" className="btn-primary" disabled={loading || hasErrors}>
           {loading ? 'Saving…' : initialData ? 'Update task' : 'Create task'}
         </button>
       </div>
