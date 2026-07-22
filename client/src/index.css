@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-ink-50 text-ink-900 font-sans transition-colors duration-300;
+  }
+
+  .dark body,
+  html.dark body {
+    @apply bg-ink-950 text-ink-100;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:focus-visible:ring-offset-ink-950;
+  }
+
+  .btn-primary {
+    @apply btn bg-brand-600 text-white hover:bg-brand-700 active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply btn bg-white text-ink-800 border border-ink-200 hover:bg-ink-50 dark:bg-ink-900 dark:text-ink-100 dark:border-ink-700 dark:hover:bg-ink-800;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent text-ink-600 hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-ink-800;
+  }
+
+  .btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-700;
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-ink-200 bg-white px-3.5 py-2.5 text-sm text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-100 dark:placeholder:text-ink-500;
+  }
+
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-ink-700 dark:text-ink-300;
+  }
+
+  .card-surface {
+    @apply rounded-2xl border border-ink-200/80 bg-white/90 backdrop-blur-sm dark:border-ink-800 dark:bg-ink-900/80;
+  }
+
+  .page-shell {
+    @apply mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8;
+  }
+}
+
+/* Subtle grid atmosphere */
+.app-bg {
+  background-color: #f5f6f7;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 10% -10%, rgba(52, 143, 114, 0.12), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(127, 199, 173, 0.1), transparent),
+    linear-gradient(rgba(28, 74, 61, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(28, 74, 61, 0.03) 1px, transparent 1px);
+  background-size: auto, auto, 48px 48px, 48px 48px;
+}
+
+html.dark .app-bg {
+  background-color: #121518;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 10% -10%, rgba(52, 143, 114, 0.18), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(40, 115, 92, 0.15), transparent),
+    linear-gradient(rgba(127, 199, 173, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(127, 199, 173, 0.04) 1px, transparent 1px);
+  background-size: auto, auto, 48px 48px, 48px 48px;
+}
