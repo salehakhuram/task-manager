@@ -69,8 +69,15 @@ export default function Register() {
 
     setLoading(true);
     try {
-      await register(form.name.trim(), form.email.trim(), form.password);
-      toast.success('Account created. Please sign in.');
+      const account = await register(form.name.trim(), form.email.trim(), form.password);
+      if (account.emailSent) {
+        toast.success('Account created. Check your email, then sign in.');
+      } else {
+        toast.success('Account created. Please sign in.');
+        if (account.emailSkipReason === 'not_configured') {
+          toast.error('Welcome email is not configured on the server yet.');
+        }
+      }
       navigate('/login', { state: { email: form.email.trim() } });
     } catch (err) {
       toast.error(getErrorMessage(err, 'Registration failed'));

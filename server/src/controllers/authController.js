@@ -45,11 +45,12 @@ const register = asyncHandler(async (req, res) => {
     throw new Error('User already exists with this email');
   }
 
-  // Account + all future tasks/meetings are owned by this user document (unique email)
   const user = await User.create({ name, email, password });
 
-  // Welcome mail goes only to this account's email (fire-and-forget)
-  sendWelcomeEmail({ name: user.name, email: user.email }).catch(() => {});
+  // Welcome mail goes only to this account's email (await so we can report status)
+  const mailResult = await sendWelcomeEmail({ name: user.name, email: user.email }).catch(
+    (err) => ({ sent: false, reason: err.message })
+  );
 
   res.status(201).json({
     success: true,
@@ -59,6 +60,8 @@ const register = asyncHandler(async (req, res) => {
       email: user.email,
       preferences: user.preferences,
       token: generateToken(user._id),
+      emailSent: Boolean(mailResult?.sent),
+      emailSkipReason: mailResult?.sent ? undefined : mailResult?.reason,
     },
   });
 });

@@ -93,10 +93,14 @@ const bootstrap = async () => {
   app.use(express.urlencoded({ extended: true }));
 
   app.get('/api/health', (req, res) => {
+    const emailConfigured = Boolean(
+      process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS
+    );
     res.json({
       success: true,
       message: 'Task Manager API is running',
       env: process.env.NODE_ENV || 'development',
+      emailConfigured,
       time: new Date().toISOString(),
     });
   });
