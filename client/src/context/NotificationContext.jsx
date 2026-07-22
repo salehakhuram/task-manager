@@ -16,12 +16,17 @@ const NotificationContext = createContext(null);
 const shownReminderIds = new Set();
 
 const showReminderToast = (payload) => {
+  const overdue = payload.overdue || payload.missed;
   toast.custom(
     (t) => (
       <div
         className={`${
           t.visible ? 'animate-slide-down' : 'opacity-0'
-        } max-w-sm rounded-2xl border border-brand-200 bg-white px-4 py-3 shadow-soft dark:border-brand-800 dark:bg-ink-900`}
+        } max-w-sm rounded-2xl border px-4 py-3 shadow-soft ${
+          overdue
+            ? 'border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/40'
+            : 'border-brand-200 bg-white dark:border-brand-800 dark:bg-ink-900'
+        }`}
       >
         <p className="font-display text-sm font-semibold text-ink-900 dark:text-ink-50">
           {payload.title}
@@ -29,14 +34,14 @@ const showReminderToast = (payload) => {
         <p className="mt-0.5 text-sm text-ink-600 dark:text-ink-300">
           {payload.description || payload.message}
         </p>
-        {payload.missed && (
-          <p className="mt-1 text-[11px] font-medium text-amber-600 dark:text-amber-400">
-            Missed reminder — delivered on reconnect
+        {overdue && (
+          <p className="mt-1 text-[11px] font-medium text-amber-700 dark:text-amber-300">
+            Ye waqt guzar gaya hai
           </p>
         )}
       </div>
     ),
-    { duration: 6000, id: `reminder-${payload.notificationId || payload.id}` }
+    { duration: 7000, id: `reminder-${payload.notificationId || payload.id}` }
   );
 };
 
@@ -45,10 +50,20 @@ const handleReminderEvent = (payload, { onStored }) => {
   if (id && shownReminderIds.has(id)) return;
   if (id) shownReminderIds.add(id);
 
+  const overdue = payload.overdue || payload.missed;
+  const desktopTitle = overdue
+    ? payload.title?.startsWith('Time passed')
+      ? payload.title
+      : `Time passed: ${payload.title}`
+    : payload.title;
+  const desktopBody = overdue
+    ? `Ye waqt guzar gaya hai. ${payload.description || payload.message || ''}`
+    : payload.description || payload.message;
+
   showDesktopNotification({
-    title: payload.title,
+    title: desktopTitle,
     message: payload.message,
-    description: payload.description || payload.message,
+    description: desktopBody,
     icon: payload.icon || '/vite.svg',
     tag: id || undefined,
   });
