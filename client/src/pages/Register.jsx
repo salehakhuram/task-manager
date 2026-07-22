@@ -70,8 +70,8 @@ export default function Register() {
     setLoading(true);
     try {
       await register(form.name.trim(), form.email.trim(), form.password);
-      toast.success('Account created');
-      navigate('/');
+      toast.success('Account created. Please sign in.');
+      navigate('/login', { state: { email: form.email.trim() } });
     } catch (err) {
       toast.error(getErrorMessage(err, 'Registration failed'));
     } finally {

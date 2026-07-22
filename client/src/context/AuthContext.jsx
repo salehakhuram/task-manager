@@ -51,9 +51,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (name, email, password) => {
+    // Create account only — user must sign in afterwards
     const { data } = await authService.register({ name, email, password });
-    const { token: t, ...rest } = data.data;
-    persist(rest, t);
+    const { token: _token, ...rest } = data.data;
     return rest;
   };
 
