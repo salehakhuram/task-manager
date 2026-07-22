@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { sendWelcomeEmail } = require('../services/emailService');
 
 const register = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
@@ -17,6 +18,9 @@ const register = asyncHandler(async (req, res) => {
   }
 
   const user = await User.create({ name, email, password });
+
+  // Fire-and-forget welcome email (does not block registration)
+  sendWelcomeEmail({ name: user.name, email: user.email }).catch(() => {});
 
   res.status(201).json({
     success: true,
